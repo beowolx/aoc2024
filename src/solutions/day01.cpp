@@ -3,6 +3,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdlib>
+#include <unordered_map>
 
 int32_t day01_part1(const std::vector<std::string> &input)
 {
@@ -34,5 +35,25 @@ int32_t day01_part1(const std::vector<std::string> &input)
 
 int32_t day01_part2(const std::vector<std::string> &input)
 {
-  return 0;
+  std::unordered_map<int, int> right_frequencies;
+  std::vector<int> left_numbers;
+
+  for (const auto &line : input)
+  {
+    int left, right;
+    std::istringstream iss(line);
+    iss >> left >> right;
+
+    left_numbers.push_back(left);
+
+    right_frequencies[right]++;
+  }
+
+  int32_t similarity_score = 0;
+  for (const auto left_num : left_numbers)
+  {
+    similarity_score += left_num * right_frequencies[left_num];
+  }
+
+  return similarity_score;
 }
