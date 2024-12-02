@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     break;
   case 2:
     std::cout << "Day 02 Part 1: " << day02_part1(input) << "\n";
-    // std::cout << "Day 02 Part 2: " << day02_part2(input) << "\n";
+    std::cout << "Day 02 Part 2: " << day02_part2(input) << "\n";
     break;
   default:
     std::cerr << "Day " << day << " not implemented\n";
