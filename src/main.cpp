@@ -2,6 +2,7 @@
 #include "solutions/day01.h"
 #include "solutions/day02.h"
 #include "solutions/day03.h"
+#include "solutions/day04.h"
 #include "solutions/utils/input_reader.h"
 
 int main(int argc, char *argv[])
@@ -28,6 +29,10 @@ int main(int argc, char *argv[])
   case 3:
     std::cout << "Day 03 Part 1: " << day03_part1(input) << "\n";
     std::cout << "Day 03 Part 2: " << day03_part2(input) << "\n";
+    break;
+  case 4:
+    std::cout << "Day 04 Part 1: " << day04_part1(input) << "\n";
+    std::cout << "Day 04 Part 2: " << day04_part2(input) << "\n";
     break;
   default:
     std::cerr << "Day " << day << " not implemented\n";
