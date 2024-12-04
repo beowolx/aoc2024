@@ -3,8 +3,9 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <array>
 
-const std::vector<std::pair<int, int>> directions = {
+constexpr std::array<std::pair<int, int>, 8> directions = {{
     // down
     {1, 0},
     // right
@@ -20,22 +21,23 @@ const std::vector<std::pair<int, int>> directions = {
     // up-right diagonal
     {-1, 1},
     // up-left diagonal
-    {-1, -1}};
+    {-1, -1},
+}};
 
 bool check_direction(const std::vector<std::string> &grid,
-                     size_t row,
-                     size_t col,
+                     const int row,
+                     const int col,
                      const std::pair<int, int> &direction)
 {
-  if (row + 3 * direction.first >= grid.size() ||
-      row + 3 * direction.first < 0 ||
-      col + 3 * direction.second >= grid[0].size() ||
-      col + 3 * direction.second < 0)
-  {
-    return false;
-  }
+  const int target_row = row + 3 * direction.first;
+  const int target_col = col + 3 * direction.second;
 
-  return (grid[row][col] == 'X' &&
+  if (target_row >= grid.size() || target_col >= grid[0].size())
+    return false;
+
+  const std::string &row_data = grid[row];
+
+  return (row_data[col] == 'X' &&
           grid[row + direction.first][col + direction.second] == 'M' &&
           grid[row + 2 * direction.first][col + 2 * direction.second] == 'A' &&
           grid[row + 3 * direction.first][col + 3 * direction.second] == 'S');
@@ -45,9 +47,9 @@ int32_t day04_part1(const std::vector<std::string> &input)
 {
   int xmas_count = 0;
 
-  for (size_t i = 0; i < input.size(); ++i)
+  for (int i = 0; i < input.size(); ++i)
   {
-    for (size_t j = 0; j < input[0].size(); ++j)
+    for (int j = 0; j < input[0].size(); ++j)
     {
       if (input[i][j] == 'X')
       {
@@ -66,47 +68,37 @@ int32_t day04_part1(const std::vector<std::string> &input)
 }
 
 bool check_x_pattern(const std::vector<std::string> &grid,
-                     size_t row,
-                     size_t col)
+                     const int row,
+                     const int col)
 {
+  if (grid[row][col] != 'A')
+    return false;
+
   if (row == 0 || row >= grid.size() - 1 ||
       col == 0 || col >= grid[0].size() - 1)
-  {
     return false;
-  }
 
-  if (grid[row][col] != 'A')
+  const char up_left = grid[row - 1][col - 1];
+  const char up_right = grid[row - 1][col + 1];
+  const char down_left = grid[row + 1][col - 1];
+  const char down_right = grid[row + 1][col + 1];
+
+  const auto is_mas_pattern = [](char c1, char c2)
   {
-    return false;
-  }
+    return (c1 == 'M' && c2 == 'S') || (c1 == 'S' && c2 == 'M');
+  };
 
-  char up_left = grid[row - 1][col - 1];
-  char up_right = grid[row - 1][col + 1];
-  char down_left = grid[row + 1][col - 1];
-  char down_right = grid[row + 1][col + 1];
-
-  bool diagonal1_valid =
-      ((up_left == 'M' && down_right == 'S') ||
-       (up_left == 'S' && down_right == 'M')) &&
-      ((up_right == 'M' && down_left == 'S') ||
-       (up_right == 'S' && down_left == 'M'));
-
-  bool diagonal2_valid =
-      ((down_left == 'M' && up_right == 'S') ||
-       (down_left == 'S' && up_right == 'M')) &&
-      ((down_right == 'M' && up_left == 'S') ||
-       (down_right == 'S' && up_left == 'M'));
-
-  return diagonal1_valid || diagonal2_valid;
+  return (is_mas_pattern(up_left, down_right) && is_mas_pattern(up_right, down_left)) ||
+         (is_mas_pattern(down_left, up_right) && is_mas_pattern(down_right, up_left));
 }
 
 int32_t day04_part2(const std::vector<std::string> &input)
 {
   int xmas_count = 0;
 
-  for (size_t i = 1; i < input.size() - 1; ++i)
+  for (int i = 1; i < input.size() - 1; ++i)
   {
-    for (size_t j = 1; j < input[0].size() - 1; ++j)
+    for (int j = 1; j < input[0].size() - 1; ++j)
     {
       if (input[i][j] == 'A')
       {
