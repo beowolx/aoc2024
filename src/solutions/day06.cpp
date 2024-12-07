@@ -6,10 +6,10 @@
 static const int drow[4] = {-1, 0, 1, 0};
 static const int dcol[4] = {0, 1, 0, -1};
 
-struct State
+inline int state_index(int r, int c, int d, int cols)
 {
-  int r, c, d;
-};
+  return ((r * cols) + c) * 4 + d;
+}
 
 int32_t day06_part1(const std::vector<std::string> &input)
 {
@@ -52,46 +52,24 @@ int32_t day06_part1(const std::vector<std::string> &input)
   }
 
   std::vector<bool> visited(rows * cols, false);
-  auto mark_visited = [&](int rr, int cc)
-  {
-    visited[rr * cols + cc] = true;
-  };
-  auto is_visited = [&](int rr, int cc)
-  {
-    return visited[rr * cols + cc];
-  };
+  visited[guard_r * cols + guard_c] = true;
 
-  mark_visited(guard_r, guard_c);
-
+  int r = guard_r, c = guard_c, d = dir;
   while (true)
   {
-    int nr = guard_r + drow[dir];
-    int nc = guard_c + dcol[dir];
-
-    bool blocked = false;
+    int nr = r + drow[d];
+    int nc = c + dcol[d];
     if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
-    {
       break;
-    }
-
     if (input[nr][nc] == '#')
     {
-      blocked = true;
-    }
-
-    if (blocked)
-    {
-      dir = (dir + 1) % 4;
-      continue;
+      d = (d + 1) % 4;
     }
     else
     {
-      guard_r = nr;
-      guard_c = nc;
-      if (!is_visited(guard_r, guard_c))
-      {
-        mark_visited(guard_r, guard_c);
-      }
+      r = nr;
+      c = nc;
+      visited[r * cols + c] = true;
     }
   }
 
@@ -109,7 +87,8 @@ bool simulate_with_extra_obstacle(std::vector<std::string> &map,
                                   int rows, int cols)
 {
   char original_char = '.';
-  if (add_r >= 0 && add_c >= 0)
+  bool placing = (add_r >= 0 && add_c >= 0);
+  if (placing)
   {
     original_char = map[add_r][add_c];
     map[add_r][add_c] = '#';
@@ -117,40 +96,31 @@ bool simulate_with_extra_obstacle(std::vector<std::string> &map,
 
   int guard_r = guard_r_init;
   int guard_c = guard_c_init;
-  int dir = dir_init;
+  int d = dir_init;
 
   std::fill(visited_states.begin(), visited_states.end(), false);
-
-  auto state_index = [&](int rr, int cc, int dd)
-  {
-    return ((rr * cols) + cc) * 4 + dd;
-  };
-
-  visited_states[state_index(guard_r, guard_c, dir)] = true;
+  visited_states[state_index(guard_r, guard_c, d, cols)] = true;
 
   while (true)
   {
-    int nr = guard_r + drow[dir];
-    int nc = guard_c + dcol[dir];
+    int nr = guard_r + drow[d];
+    int nc = guard_c + dcol[d];
 
     bool blocked = false;
     if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
     {
       break;
     }
-
     if (map[nr][nc] == '#')
-    {
       blocked = true;
-    }
 
     if (blocked)
     {
-      dir = (dir + 1) % 4;
-      int idx = state_index(guard_r, guard_c, dir);
+      d = (d + 1) % 4;
+      int idx = state_index(guard_r, guard_c, d, cols);
       if (visited_states[idx])
       {
-        if (add_r >= 0 && add_c >= 0)
+        if (placing)
           map[add_r][add_c] = original_char;
         return true;
       }
@@ -160,10 +130,10 @@ bool simulate_with_extra_obstacle(std::vector<std::string> &map,
     {
       guard_r = nr;
       guard_c = nc;
-      int idx = state_index(guard_r, guard_c, dir);
+      int idx = state_index(guard_r, guard_c, d, cols);
       if (visited_states[idx])
       {
-        if (add_r >= 0 && add_c >= 0)
+        if (placing)
           map[add_r][add_c] = original_char;
         return true;
       }
@@ -171,7 +141,7 @@ bool simulate_with_extra_obstacle(std::vector<std::string> &map,
     }
   }
 
-  if (add_r >= 0 && add_c >= 0)
+  if (placing)
     map[add_r][add_c] = original_char;
   return false;
 }
@@ -217,18 +187,52 @@ int32_t day06_part2(const std::vector<std::string> &input)
   }
 
   std::vector<std::string> map = input;
-  std::vector<bool> visited_states(rows * cols * 4, false);
-
-  int32_t count = 0;
-  for (int r = 0; r < rows; ++r)
+  std::vector<bool> visited_states_global(rows * cols * 4, false);
+  std::vector<bool> visited_positions(rows * cols, false);
   {
-    for (int c = 0; c < cols; ++c)
+    int r = guard_r, c = guard_c, d = dir;
+    visited_positions[r * cols + c] = true;
+    visited_states_global[state_index(r, c, d, cols)] = true;
+    while (true)
     {
-      if (r == guard_r && c == guard_c)
-        continue;
-      if (map[r][c] == '.')
+      int nr = r + drow[d];
+      int nc = c + dcol[d];
+      bool blocked = false;
+      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
+        break;
+      if (map[nr][nc] == '#')
+        blocked = true;
+
+      if (blocked)
       {
-        bool loop = simulate_with_extra_obstacle(map, r, c,
+        d = (d + 1) % 4;
+        if (visited_states_global[state_index(r, c, d, cols)])
+          break;
+        visited_states_global[state_index(r, c, d, cols)] = true;
+      }
+      else
+      {
+        r = nr;
+        c = nc;
+        visited_positions[r * cols + c] = true;
+        if (visited_states_global[state_index(r, c, d, cols)])
+          break;
+        visited_states_global[state_index(r, c, d, cols)] = true;
+      }
+    }
+  }
+
+  std::vector<bool> visited_states(rows * cols * 4, false);
+  int32_t count = 0;
+  for (int rr = 0; rr < rows; ++rr)
+  {
+    for (int cc = 0; cc < cols; ++cc)
+    {
+      if (rr == guard_r && cc == guard_c)
+        continue;
+      if (map[rr][cc] == '.' && visited_positions[rr * cols + cc])
+      {
+        bool loop = simulate_with_extra_obstacle(map, rr, cc,
                                                  guard_r, guard_c, dir,
                                                  visited_states, rows, cols);
         if (loop)
