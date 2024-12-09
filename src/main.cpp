@@ -7,6 +7,7 @@
 #include "solutions/day06.h"
 #include "solutions/day07.h"
 #include "solutions/day08.h"
+#include "solutions/day09.h"
 #include "solutions/utils/input_reader.h"
 #include "solutions/utils/timer.h"
 
@@ -71,6 +72,16 @@ int main(int argc, char *argv[])
     {
       Timer t2("Day 08 Part 2");
       std::cout << "Day 08 Part 2: " << day08_part2(input) << "\n";
+    }
+    break;
+  case 9:
+  {
+    Timer t1("Day 09 Part 1");
+    std::cout << "Day 09 Part 1: " << day09_part1(input) << "\n";
+  }
+    {
+      Timer t2("Day 09 Part 2");
+      std::cout << "Day 09 Part 2: " << day09_part2(input) << "\n";
     }
     break;
   default:
