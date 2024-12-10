@@ -115,5 +115,75 @@ int32_t day10_part1(const std::vector<std::string> &input)
 
 int32_t day10_part2(const std::vector<std::string> &input)
 {
-  return 0;
+  int rows = (int)input.size();
+  if (rows == 0)
+  {
+    return 0;
+  }
+  int cols = (int)input[0].size();
+
+  std::vector<std::vector<int>> heightmap(rows, std::vector<int>(cols, 0));
+  for (int r = 0; r < rows; r++)
+  {
+    for (int c = 0; c < cols; c++)
+    {
+      heightmap[r][c] = input[r][c] - '0';
+    }
+  }
+
+  std::vector<std::vector<uint32_t>> dp(rows, std::vector<uint32_t>(cols, 0));
+
+  for (int r = 0; r < rows; r++)
+  {
+    for (int c = 0; c < cols; c++)
+    {
+      if (heightmap[r][c] == 9)
+      {
+        dp[r][c] = 1ULL;
+      }
+    }
+  }
+
+  const int dr[4] = {-1, 1, 0, 0};
+  const int dc[4] = {0, 0, -1, 1};
+
+  for (int h = 8; h >= 0; h--)
+  {
+    for (int r = 0; r < rows; r++)
+    {
+      for (int c = 0; c < cols; c++)
+      {
+        if (heightmap[r][c] == h)
+        {
+          uint32_t count_paths = 0;
+          for (int k = 0; k < 4; k++)
+          {
+            int nr = r + dr[k];
+            int nc = c + dc[k];
+            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols)
+              continue;
+            if (heightmap[nr][nc] == h + 1)
+            {
+              count_paths += dp[nr][nc];
+            }
+          }
+          dp[r][c] = count_paths;
+        }
+      }
+    }
+  }
+
+  uint32_t total_rating = 0;
+  for (int r = 0; r < rows; r++)
+  {
+    for (int c = 0; c < cols; c++)
+    {
+      if (heightmap[r][c] == 0)
+      {
+        total_rating += dp[r][c];
+      }
+    }
+  }
+
+  return total_rating;
 }
